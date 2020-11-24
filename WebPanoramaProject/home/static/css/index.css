@@ -1,0 +1,79 @@
+html,
+body {
+    height: 100%;
+}
+
+html {
+    /*behavior: smooth; */
+    scroll-behavior: smooth;
+}
+
+/* header */
+
+header{
+    min-height: 10%;
+}
+
+.sm-image{
+    width:160px;
+    height:160px;
+}
+
+.md-image {
+    width: 500px;
+    height: 500px;
+}
+
+.lg-image{
+    max-width: 95%;
+}
+
+.jumbotron {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    margin-bottom: 0;
+    background-color: #fff;
+}
+
+@media (min-width: 768px) {
+    .jumbotron {
+        padding-top: 6rem;
+        padding-bottom: 6rem;
+    }
+}
+
+.jumbotron p:last-child {
+    margin-bottom: 0;
+}
+
+.jumbotron h1 {
+    font-weight: 300;
+}
+
+.jumbotron .container {
+    max-width: 40rem;
+}
+
+/* Main */
+
+body main {
+    min-height: 70%;
+}
+
+.bd-placeholder-img {
+    font-size: 1.125rem;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.col-sm-10 h1{
+    color: red;
+}
+@media (min-width: 768px) {
+    .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+    }
+}
+
+/* Footer */
