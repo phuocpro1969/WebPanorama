@@ -1,11 +1,13 @@
 let imageLists = []
 let base = []
+let allImage = []
 
 function AddFile(event){
     $(document).ready(function(){
         addImage(event);
     });
 }
+
 document.getElementById("run_test").addEventListener("click", function(){
     if (base.length === 0) {
         clearImage();
@@ -31,12 +33,12 @@ function ShowAlert(){
     document.getElementById("showAlert").innerHTML = html;
 }
 
-function renderResult(imageLists){
+function renderOnlyResult(){
     html = `
         <div id="result" style="text-align: center;">
              <h1>RESULT</h1>
                  <div class="row justify-content-md-center">
-                     <img class="lg-image" width="pixels" src="${imageLists[0].image.result}" alt="result" title="result">
+                     <img class="lg-image" width="pixels" src="${imageLists[0].image}" alt="result" title="result">
                  </div>
              </div>
         </div>
@@ -47,53 +49,98 @@ function renderResult(imageLists){
 function addImage(event) {
     if (window.File && window.FileList && window.FileReader) {
         let allFiles = event.target.files; //FileList object
-        let flag = true;
         for (let i = 0; i < allFiles.length; i++) {
             let file = allFiles[i];
             if (!file.type.match('image')) continue;
-
-            let picReader = new FileReader();
-            picReader.addEventListener("load", function(event) {
-                let imageFile = event.target;
-                base.push(imageFile.result);
-                let image = new Image(Math.random(), file.name ,imageFile);
-                imageLists.push(image);
-                renderHtml(imageLists);
-                if (flag){
-                    flag = false;
-                    saveData("base", base);
-                    document.getElementById("run_test").addEventListener("click", function(){
-                        if(base.length >=2) {
-                            let csrf = $('input[name=csrfmiddlewaretoken]').val();
-                            $.ajax({
-                                url: '.',
-                                method: 'POST',
-                                data: {
-                                    base,
-                                    csrfmiddlewaretoken: csrf,
-                                },
-                                success: function (reponse) {
-                                }
-                            });
-                            renderAnswerHTML(base.length);
-                        }
-
-                        if (base.length === 1){
-                            document.getElementById("categories").innerHTML =`
-                                <a class="nav-link" href="#input">INPUT</a>
-                                <a class="nav-link" href="#result">RESULT</a>
-                            `;
-                            renderResult(imageLists);
-                        }
-                    });
-                }
-                saveData("base", base);
-            });
-            //Read the image
-
-            picReader.readAsDataURL(file);
+            allImage.push(file);
         }
+        showImage();
     }
+    callBackend()
+}
+
+function renderHtml() {
+    let htmlContent = "";
+    let output = document.getElementById("listAfterAddImage");
+    for (let i = 0; i < imageLists.length; i++) {
+        htmlContent += `
+                    <div class="col-md-2">
+                        <div class="card mb-1 shadow-sm">
+                            <img class="bd-placeholder-img card-img-top sm-image" src="${imageLists[i].image}" alt="${imageLists[i].name}" title="${imageLists[i].name}">
+                            <button type="button" onclick='deleteImage(${imageLists[i].id})' class="btn btn-sm btn-outline-secondary">Delete</button> 
+                        </div> 
+                    </div>
+                    `;
+    }
+    htmlContent += ` 
+                    <div class = "col-md-3">
+                        <div class = "form-group"> 
+                            <input type="file" multiple class="form-control-file" id="AddFile" onchange="AddFile(event)"  name="uploadImage" accept="image/*">
+                        </div> 
+                    </div>
+                    `
+    output.innerHTML = htmlContent;
+}
+
+function asyncFunction(callback) {
+   setTimeout(() => {
+      callback();
+   }, 1000);
+}
+
+function asyncFunctionConfigTime(callback, ms) {
+   setTimeout(() => {
+      callback();
+   }, ms);
+}
+
+function save(){
+    saveData("base", base);
+}
+
+function callBackend(){
+    document.getElementById("run_test").addEventListener("click", function(){
+        if (base.length === 1){
+            document.getElementById("categories").innerHTML =`
+                <a class="nav-link" href="#input">INPUT</a>
+                <a class="nav-link" href="#result">RESULT</a>
+                `;
+            renderOnlyResult(imageLists);
+        }
+        if(base.length >=2) {
+            let csrf = $('input[name=csrfmiddlewaretoken]').val();
+            $.ajax({
+                url: '.',
+                method: 'POST',
+
+                data: {
+                    base,
+                    csrfmiddlewaretoken: csrf,
+                },
+                success: function (response) {
+                    console.log(response)
+                }
+            });
+            asyncFunctionConfigTime(renderAnswerHTML, 60000);
+        }
+    });
+}
+
+function showImage() {
+    for (let i = 0; i < allImage.length; i++) {
+        let picReader = new FileReader();
+        picReader.readAsDataURL(allImage[i]);
+        picReader.addEventListener("load", function(event){
+            let result = event.target.result;
+            let image = new Image(Math.random(), allImage[i].name, result);
+            base.push(result);
+            imageLists.push(image);
+        })
+    }
+    renderHtml();
+    asyncFunction(save)
+    asyncFunction(renderHtml);
+    //asyncFunction(callBackend);
 }
 
 function buildCategories(n) {
@@ -112,7 +159,8 @@ function buildCategories(n) {
     document.getElementById("categories").innerHTML = categoriesHTML;
 }
 
-function buildOutputStep(n){
+function buildOutputStep(){
+    let n = base.length;
     let html = "";
     html += `
         <div>
@@ -193,35 +241,10 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function renderAnswerHTML(n){
-    sleep(1000*n);
-    setTimeout(function(){
-        buildCategories(n);
-        buildOutputStep(n);
-    }, 1000*n*1.5);
-}
-
-function renderHtml(data) {
-    let htmlContent = "";
-    let output = document.getElementById("listAfterAddImage");
-    for (let i = 0; i < data.length; i++) {
-        htmlContent += `
-                    <div class="col-md-2">
-                        <div class="card mb-1 shadow-sm">
-                            <img class="bd-placeholder-img card-img-top sm-image" src="${data[i].image.result}" alt="${data[i].name}" title="${data[i].name}">
-                            <button type="button" onclick='deleteImage(${data[i].id})' class="btn btn-sm btn-outline-secondary">Delete</button> 
-                        </div> 
-                    </div>
-                    `;
-    }
-    htmlContent += ` 
-                    <div class = "col-md-3">
-                        <div class = "form-group"> 
-                            <input type="file" multiple class="form-control-file" id="AddFile" onchange="AddFile(event)"  name="uploadImage" accept="image/*">
-                        </div> 
-                    </div>
-                    `
-    output.innerHTML = htmlContent;
+function renderAnswerHTML(){
+    let n = base.length;
+    buildCategories(n);
+    buildOutputStep();
 }
 
 function findById(id, arr) {
@@ -234,6 +257,9 @@ function findById(id, arr) {
 }
 
 function clearImage() {
+    allImage = [];
+    imageLists = [];
+    console.log(base);
     document.getElementById("listAfterAddImage").innerHTML = `
     <div class = "col-md-3">
         <div class = "form-group">
@@ -241,7 +267,7 @@ function clearImage() {
         </div> 
     </div>
     `;
-    imageLists = [];
+
     base = [];
     document.getElementById("showAnswers").innerHTML = "";
     document.getElementById("categories").innerHTML = `
