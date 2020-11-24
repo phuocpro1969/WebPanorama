@@ -88,16 +88,6 @@ function asyncFunction(callback) {
    }, 1000);
 }
 
-function asyncFunctionConfigTime(callback, ms) {
-   setTimeout(() => {
-      callback();
-   }, ms);
-}
-
-function save(){
-    saveData("base", base);
-}
-
 function callBackend(){
     document.getElementById("run_test").addEventListener("click", function(){
         if (base.length === 1){
@@ -112,16 +102,15 @@ function callBackend(){
             $.ajax({
                 url: '.',
                 method: 'POST',
-
                 data: {
                     base,
                     csrfmiddlewaretoken: csrf,
                 },
                 success: function (response) {
-                    console.log(response)
+                    renderAnswerHTML();
+                    console.log(response);
                 }
             });
-            asyncFunctionConfigTime(renderAnswerHTML, 60000);
         }
     });
 }
@@ -138,7 +127,6 @@ function showImage() {
         })
     }
     renderHtml();
-    asyncFunction(save)
     asyncFunction(renderHtml);
     //asyncFunction(callBackend);
 }
@@ -237,10 +225,6 @@ function buildOutputStep(){
     document.getElementById("showAnswers").innerHTML = html;
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 function renderAnswerHTML(){
     let n = base.length;
     buildCategories(n);
@@ -281,7 +265,7 @@ function deleteImage(id) {
     imageLists.splice(index, 1);
     base.splice(index, 1);
     renderHtml(imageLists);
-    saveData("base", base);
+    //saveData("base", base);
 }
 
 // function saveData(key, value) {
@@ -296,10 +280,6 @@ function deleteImage(id) {
 //     userLink.setAttribute('href', window.URL.createObjectURL(blob));
 //     userLink.click();
 // }
-
-function saveData(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
-}
 
 // function fetchData(key, arr) {
 //     arr=[]

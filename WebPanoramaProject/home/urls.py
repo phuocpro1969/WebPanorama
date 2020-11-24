@@ -7,7 +7,7 @@ from . import views
 
 urlpatterns = [
     path('', views.Index.as_view(), name='home'),
-    url(r'^favicon\.ico$',RedirectView.as_view(url='/static/images/uit.ico')),
+    url(r'^favicon\.ico$', RedirectView.as_view(url='/static/images/uit.ico')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
