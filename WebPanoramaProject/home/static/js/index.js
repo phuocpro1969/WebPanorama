@@ -1,5 +1,5 @@
-var imageLists = []
-var base = []
+let imageLists = []
+let base = []
 
 function AddFile(event){
     $(document).ready(function(){
@@ -13,8 +13,9 @@ document.getElementById("run_test").addEventListener("click", function(){
     }
 });
 
-function Image(id, image) {
+function Image(id, name, image) {
     this.id = id;
+    this.name = name;
     this.image = image;
 }
 
@@ -35,7 +36,7 @@ function renderResult(imageLists){
         <div id="result" style="text-align: center;">
              <h1>RESULT</h1>
                  <div class="row justify-content-md-center">
-                     <img class="lg-image" width="pixels" src="${imageLists[0].image.result}" alt="result">
+                     <img class="lg-image" width="pixels" src="${imageLists[0].image.result}" alt="result" title="result">
                  </div>
              </div>
         </div>
@@ -55,7 +56,7 @@ function addImage(event) {
             picReader.addEventListener("load", function(event) {
                 let imageFile = event.target;
                 base.push(imageFile.result);
-                let image = new Image(Math.random(), imageFile);
+                let image = new Image(Math.random(), file.name ,imageFile);
                 imageLists.push(image);
                 renderHtml(imageLists);
                 if (flag){
@@ -121,25 +122,25 @@ function buildOutputStep(n){
             <h2>1.1. KeyPoints<h2>
             <div class="row">
                 <div class="col">
-                    <img class="md-image" src="../../image/keypoints_image_after_compare/keypoints_image_src_compare_image_1.jpg" alt="keypoints image 1">
+                    <img class="md-image" src="../../image/keypoints_image_after_compare/keypoints_image_src_compare_image_1.jpg" alt="keypoints image 1" title="keypoints image 1">
                 </div>
                 <div class="col">
-                     <img class="md-image" src="../../image/keypoints/keypoints_image_1.jpg" alt="keypoints image 2">
+                     <img class="md-image" src="../../image/keypoints/keypoints_image_1.jpg" alt="keypoints image 2" title="keypoints image 2">
                 </div>
             </div>
             <h2>1.2 Matching By RANSAC</h2>
             <h3>1.2.1 Matching KeyPoint Default</h3>
             <div class="row justify-content-md-center">
-                <img class="lg-image" width="pixels" src="../../image/matcher/match_image_1.jpg" alt="match image 1 with image 2">
+                <img class="lg-image" width="pixels" src="../../image/matcher/match_image_1.jpg" alt="match image 1 with image 2" title="match image 1 with image 2">
             </div>
             <h3>1.2.2 Matching KeyPoints Out Image</h3>
             <div class="row justify-content-md-center">
-                <img class="lg-image" width="pixels" src="../../image/ransac/match_RANSAC_image_1.jpg" alt="re-match with keypoints out image">
+                <img class="lg-image" width="pixels" src="../../image/ransac/match_RANSAC_image_1.jpg" alt="re-match with keypoints out image" title="re-match with keypoints out image">
             </div>
             <br>    
             <h2>1.3 Result After Matching </h2>
             <div class="row justify-content-md-center">
-                <img class="lg-image" width="pixels" src="../../image/results/%20result_1.jpg" alt="result image matched step 1">
+                <img class="lg-image" width="pixels" src="../../image/results/%20result_1.jpg" alt="result image matched step 1" title="result image matched step 1">
             </div>
         </div>
     `
@@ -153,25 +154,25 @@ function buildOutputStep(n){
                 <h2>${i}.1. KeyPoints<h2>
                 <div class="row">
                     <div class="col">
-                        <img class="md-image" src="../../image/keypoints_image_after_compare/keypoints_image_src_compare_image_${i}.jpg" alt="keypoints image result in step ${i - 1}">
+                        <img class="md-image" src="../../image/keypoints_image_after_compare/keypoints_image_src_compare_image_${i}.jpg" alt="keypoints image result in step ${i - 1}" title="keypoints image result in step ${i - 1}">
                     </div>
                     <div class="col">
-                        <img class="md-image" src="../../image/keypoints/keypoints_image_${i}.jpg" alt="keypoints image ${i}">
+                        <img class="md-image" src="../../image/keypoints/keypoints_image_${i}.jpg" alt="keypoints image ${i}" title="keypoints image ${i}">
                     </div>
                 </div>
                 <h2>${i}.2 Matching By RANSAC</h2>
                 <h3>${i}.2.1 Matching KeyPoint Default</h3>
                 <div class="row justify-content-md-center">
-                    <img class="lg-image" width="pixels" src="../../image/matcher/match_image_${i}.jpg" alt="match image result in step_${i - 1} with image ${i + 1}">
+                    <img class="lg-image" width="pixels" src="../../image/matcher/match_image_${i}.jpg" alt="match image result in step_${i - 1} with image ${i + 1}" title="match image result in step_${i - 1} with image ${i + 1}">
                 </div>
                 <h3>${i}.2.2 Matching KeyPoints Out Image</h3>
                 <div class="row justify-content-md-center">                    
-                    <img class="lg-image" width="pixels" src="../../image/ransac/match_RANSAC_image_${i}.jpg" alt="re-match with keypoints out image">
+                    <img class="lg-image" width="pixels" src="../../image/ransac/match_RANSAC_image_${i}.jpg" alt="re-match with keypoints out image" title="re-match with keypoints out image">
                 </div>
                 <br>
                 <h2>${i}.3 Result after matching </h2>
                 <div class="row justify-content-md-center">
-                    <img class="lg-image" width="pixels" src="../../image/results/%20result_${i}.jpg" alt="result image step ${i}">
+                    <img class="lg-image" width="pixels" src="../../image/results/%20result_${i}.jpg" alt="result image step ${i}" title="result image step ${i}">
                 </div>
             </div>
         `
@@ -180,7 +181,7 @@ function buildOutputStep(n){
         <div id="result" style="text-align: center;">
              <h1>RESULT</h1>
                  <div class="row justify-content-md-center">
-                     <img class="lg-image" width="pixels" src="../../image/results/%20result_${n-1}.jpg" alt="result image step ${n-1}">
+                     <img class="lg-image" width="pixels" src="../../image/results/%20result_${n-1}.jpg" alt="result image step ${n-1}" title="result image step ${n-1}">
                  </div>
              </div>
         </div>
@@ -207,7 +208,7 @@ function renderHtml(data) {
         htmlContent += `
                     <div class="col-md-2">
                         <div class="card mb-1 shadow-sm">
-                            <img class="bd-placeholder-img card-img-top sm-image" src="${data[i].image.result}" alt="${data[i].image.name}">
+                            <img class="bd-placeholder-img card-img-top sm-image" src="${data[i].image.result}" alt="${data[i].name}" title="${data[i].name}">
                             <button type="button" onclick='deleteImage(${data[i].id})' class="btn btn-sm btn-outline-secondary">Delete</button> 
                         </div> 
                     </div>
@@ -274,43 +275,43 @@ function saveData(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
 }
 
-function fetchData(key, arr) {
-    arr=[]
-    let local = localStorage.getItem(key);
-    console.log(local);
-    if (local) {
-        
-        mapData(JSON.parse(local), arr);
-        console.log(arr);
-        //renderHTML(arr);
-    } else {
-        console.log("no data");
-    }
-}
+// function fetchData(key, arr) {
+//     arr=[]
+//     let local = localStorage.getItem(key);
+//     console.log(local);
+//     if (local) {
+//
+//         mapData(JSON.parse(local), arr);
+//         console.log(arr);
+//         //renderHTML(arr);
+//     } else {
+//         console.log("no data");
+//     }
+// }
+//
+// function fetchBase(key, arr) {
+//     arr=[]
+//     let local = localStorage.getItem(key);
+//     if (local) {
+//         let data = JSON.parse(local);
+//         for (let i = 0; i <= data.length; i++)
+//             if (!!data[i])
+//                 arr.push(data[i]);
+//         //renderHTML(arr);
+//     } else {
+//         console.log("no data");
+//     }
+// }
 
-function fetchBase(key, arr) {
-    arr=[]
-    let local = localStorage.getItem(key);
-    if (local) {
-        let data = JSON.parse(local);
-        for (let i = 0; i <= data.length; i++)
-            if (!!data[i])
-                arr.push(data[i]);
-        //renderHTML(arr);
-    } else {
-        console.log("no data");
-    }
-}
-
-function mapData(data, arr) {
-    for (let i = 0; i < data.length; i++) {
-        let image = new Image(
-            data[i].id,
-            data[i].image
-        );
-        arr.push(image);
-    }
-}
+// function mapData(data, arr) {
+//     for (let i = 0; i < data.length; i++) {
+//         let image = new Image(
+//             data[i].id,
+//             data[i].image
+//         );
+//         arr.push(image);
+//     }
+// }
 
 //fetchBase("base", base);
 /*fetchData("imageLists", imageLists);*/
