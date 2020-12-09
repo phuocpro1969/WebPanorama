@@ -31,13 +31,14 @@ class SIFT:
         name_kp_2 = 'keypoints\keypoints_image_' + str(idImage) + '.jpg'
         name_kp_2 = self.convert_link_file_to_true_directory(name_kp_2)
 
+        # Get keypoints in image
         kp_1, des_1 = self.keyPoints(src_img)
         kp_2, des_2 = self.keyPoints(test_img)
         cv2.imwrite(name_kp_1, cv2.drawKeypoints(src_img, kp_1, None))
         cv2.imwrite(name_kp_2, cv2.drawKeypoints(test_img, kp_2, None))
 
+        # Matching keypoints
         matches = self.PLANN.knnMatch(des_1, des_2, k=2)
-
         matches_mask = [[0, 0] for i in range(len(matches))]
 
         #find good

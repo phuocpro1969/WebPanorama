@@ -82,10 +82,18 @@ function renderHtml() {
     output.innerHTML = htmlContent;
 }
 
-function asyncFunction(callback) {
+function asyncFunction(callback, ms) {
    setTimeout(() => {
       callback();
-   }, 1000);
+   }, ms);
+}
+
+function sleep(millis)
+{
+    let date = new Date();
+    let curDate = null;
+    do { curDate = new Date(); }
+    while(curDate-date < millis);
 }
 
 function callBackend(){
@@ -98,6 +106,7 @@ function callBackend(){
             renderOnlyResult(imageLists);
         }
         if(base.length >=2) {
+            document.getElementById("showAnswers").innerHTML = "";
             let csrf = $('input[name=csrfmiddlewaretoken]').val();
             $.ajax({
                 url: '.',
@@ -106,9 +115,11 @@ function callBackend(){
                     base,
                     csrfmiddlewaretoken: csrf,
                 },
-                success: function (response) {
-                    renderAnswerHTML();
-                    console.log(response);
+                success: function (response, text, status) {
+                    if(status.status === 200) {
+                        sleep(1000*base.length);
+                        asyncFunction(renderAnswerHTML, 15000);
+                    }
                 }
             });
         }
@@ -116,6 +127,8 @@ function callBackend(){
 }
 
 function showImage() {
+    base = []
+    imageLists = []
     for (let i = 0; i < allImage.length; i++) {
         let picReader = new FileReader();
         picReader.readAsDataURL(allImage[i]);
@@ -126,9 +139,7 @@ function showImage() {
             imageLists.push(image);
         })
     }
-    renderHtml();
-    asyncFunction(renderHtml);
-    //asyncFunction(callBackend);
+    asyncFunction(renderHtml, 2000);
 }
 
 function buildCategories(n) {
@@ -228,6 +239,7 @@ function buildOutputStep(){
 function renderAnswerHTML(){
     let n = base.length;
     buildCategories(n);
+    sleep(n*1000)
     buildOutputStep();
 }
 
@@ -243,7 +255,6 @@ function findById(id, arr) {
 function clearImage() {
     allImage = [];
     imageLists = [];
-    console.log(base);
     document.getElementById("listAfterAddImage").innerHTML = `
     <div class = "col-md-3">
         <div class = "form-group">
@@ -264,6 +275,7 @@ function deleteImage(id) {
     let index = findById(id, imageLists);
     imageLists.splice(index, 1);
     base.splice(index, 1);
+    allImage.splice(index, 1);
     renderHtml(imageLists);
     //saveData("base", base);
 }
