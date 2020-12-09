@@ -9,7 +9,7 @@ class SIFT:
         index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
         search_params = dict(checks=50)
         self.PLANN = cv2.FlannBasedMatcher(index_params, search_params)
-        self.MIN_MATCH_COUNT = 10
+        self.MIN_MATCH_COUNT = 5
         self.directory_output = directory_output
 
     def convert_link_file_to_true_directory(self, name):
@@ -20,7 +20,7 @@ class SIFT:
         kp, des = self.sift.detectAndCompute(img_gray, None)
         return kp, des
 
-    def match(self, src_img, test_img, directory_output, idImage):
+    def match(self, src_img, test_img, idImage):
         # set name
         name_matches = 'match_image_' + str(idImage) + '.jpg'
         name_matches = self.convert_link_file_to_true_directory(name_matches)
@@ -31,13 +31,14 @@ class SIFT:
         name_kp_2 = 'keypoints_image_' + str(idImage) + '.jpg'
         name_kp_2 = self.convert_link_file_to_true_directory(name_kp_2)
 
+        # Get keypoints in image
         kp_1, des_1 = self.keypoints(src_img)
         kp_2, des_2 = self.keypoints(test_img)
         cv2.imwrite(name_kp_1, cv2.drawKeypoints(src_img, kp_1, None))
         cv2.imwrite(name_kp_2, cv2.drawKeypoints(test_img, kp_2, None))
 
+        # Matching keypoints
         matches = self.PLANN.knnMatch(des_1, des_2, k=2)
-
         matches_mask = [[0, 0] for i in range(len(matches))]
 
         #find good

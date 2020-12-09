@@ -1,7 +1,8 @@
 from stitch import *
 
-directory_input = 'input'
-directory_output = 'output'
-
-s = Stitch(directory_input, directory_output)
-s.run_stitch()
+for i in range(1, 10):
+    print(i)
+    directory_input = 'input/' + str(i) + '/'
+    directory_output = 'output/' + str(i) + '/'
+    s = Stitch(directory_input, directory_output)
+    s.run_stitch()
