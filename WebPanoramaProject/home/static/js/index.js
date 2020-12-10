@@ -88,14 +88,6 @@ function asyncFunction(callback, ms) {
    }, ms);
 }
 
-function sleep(millis)
-{
-    let date = new Date();
-    let curDate = null;
-    do { curDate = new Date(); }
-    while(curDate-date < millis);
-}
-
 function callBackend(){
     document.getElementById("run_test").addEventListener("click", function(){
         if (base.length === 1){
@@ -111,15 +103,14 @@ function callBackend(){
             $.ajax({
                 url: '.',
                 method: 'POST',
+                dataType: 'json',
                 data: {
                     base,
                     csrfmiddlewaretoken: csrf,
                 },
-                success: function (response, text, status) {
-                    if(status.status === 200) {
-                        sleep(1000*base.length);
-                        asyncFunction(renderAnswerHTML, 15000);
-                    }
+                success: function (response, status) {
+                    content = JSON.parse(response['content']);
+                    renderAnswerHTML(content);
                 }
             });
         }
@@ -139,7 +130,7 @@ function showImage() {
             imageLists.push(image);
         })
     }
-    asyncFunction(renderHtml, 2000);
+    asyncFunction(renderHtml, 200);
 }
 
 function buildCategories(n) {
@@ -158,9 +149,14 @@ function buildCategories(n) {
     document.getElementById("categories").innerHTML = categoriesHTML;
 }
 
-function buildOutputStep(){
+function buildOutputStep(content){
     let n = base.length;
     let html = "";
+    let arrKeyPoints = content['arrKeyPoints']
+    let arrKeyPointsAfterCompare = content['arrKeyPointsAfterCompare']
+    let arrMatcher = content['arrMatcher']
+    let arrRansac = content['arrRansac']
+    let arrResult = content['arrResult']
     html += `
         <div>
             <div id="step_1" style="text-align: center;">
@@ -169,25 +165,25 @@ function buildOutputStep(){
             <h2>1.1. KeyPoints<h2>
             <div class="row">
                 <div class="col">
-                    <img class="md-image" src="../../image/keypoints_image_after_compare/keypoints_image_src_compare_image_1.jpg" alt="keypoints image 1" title="keypoints image 1">
+                    <img class="md-image" src="${arrKeyPointsAfterCompare[0]}" alt="keypoints image 1" title="keypoints image 1">
                 </div>
                 <div class="col">
-                     <img class="md-image" src="../../image/keypoints/keypoints_image_1.jpg" alt="keypoints image 2" title="keypoints image 2">
+                     <img class="md-image" src="${arrKeyPoints[0]}" alt="keypoints image 2" title="keypoints image 2">
                 </div>
             </div>
             <h2>1.2 Matching By RANSAC</h2>
             <h3>1.2.1 Matching KeyPoint Default</h3>
             <div class="row justify-content-md-center">
-                <img class="lg-image" width="pixels" src="../../image/matcher/match_image_1.jpg" alt="match image 1 with image 2" title="match image 1 with image 2">
+                <img class="lg-image" width="pixels" src="${arrMatcher[0]}" alt="match image 1 with image 2" title="match image 1 with image 2">
             </div>
             <h3>1.2.2 Matching KeyPoints Out Image</h3>
             <div class="row justify-content-md-center">
-                <img class="lg-image" width="pixels" src="../../image/ransac/match_RANSAC_image_1.jpg" alt="re-match with keypoints out image" title="re-match with keypoints out image">
+                <img class="lg-image" width="pixels" src="${arrRansac[0]}" alt="re-match with keypoints out image" title="re-match with keypoints out image">
             </div>
             <br>    
             <h2>1.3 Result After Matching </h2>
             <div class="row justify-content-md-center">
-                <img class="lg-image" width="pixels" src="../../image/results/%20result_1.jpg" alt="result image matched step 1" title="result image matched step 1">
+                <img class="lg-image" width="pixels" src="${arrResult[0]}" alt="result image matched step 1" title="result image matched step 1">
             </div>
         </div>
     `
@@ -201,34 +197,35 @@ function buildOutputStep(){
                 <h2>${i}.1. KeyPoints<h2>
                 <div class="row">
                     <div class="col">
-                        <img class="md-image" src="../../image/keypoints_image_after_compare/keypoints_image_src_compare_image_${i}.jpg" alt="keypoints image result in step ${i - 1}" title="keypoints image result in step ${i - 1}">
+                        <img class="md-image" src="${arrKeyPointsAfterCompare[i-1]}" alt="keypoints image result in step ${i - 1}" title="keypoints image result in step ${i - 1}">
                     </div>
                     <div class="col">
-                        <img class="md-image" src="../../image/keypoints/keypoints_image_${i}.jpg" alt="keypoints image ${i}" title="keypoints image ${i}">
+                        <img class="md-image" src="${arrKeyPoints[i-1]}" alt="keypoints image ${i}" title="keypoints image ${i}">
                     </div>
                 </div>
                 <h2>${i}.2 Matching By RANSAC</h2>
                 <h3>${i}.2.1 Matching KeyPoint Default</h3>
                 <div class="row justify-content-md-center">
-                    <img class="lg-image" width="pixels" src="../../image/matcher/match_image_${i}.jpg" alt="match image result in step_${i - 1} with image ${i + 1}" title="match image result in step_${i - 1} with image ${i + 1}">
+                    <img class="lg-image" width="pixels" src="${arrMatcher[i-1]}"" alt="match image result in step_${i - 1} with image ${i + 1}" title="match image result in step_${i - 1} with image ${i + 1}">
                 </div>
                 <h3>${i}.2.2 Matching KeyPoints Out Image</h3>
-                <div class="row justify-content-md-center">                    
-                    <img class="lg-image" width="pixels" src="../../image/ransac/match_RANSAC_image_${i}.jpg" alt="re-match with keypoints out image" title="re-match with keypoints out image">
+                <div class="row justify-content-md-center">
+                    <img class="lg-image" width="pixels" src="${arrRansac[i-1]}" alt="re-match with keypoints out image" title="re-match with keypoints out image">
                 </div>
                 <br>
                 <h2>${i}.3 Result after matching </h2>
                 <div class="row justify-content-md-center">
-                    <img class="lg-image" width="pixels" src="../../image/results/%20result_${i}.jpg" alt="result image step ${i}" title="result image step ${i}">
+                    <img class="lg-image" width="pixels" src="${arrResult[i-1]}" alt="result image step ${i}" title="result image step ${i}">
                 </div>
             </div>
         `
     }
+
     html += `
         <div id="result" style="text-align: center;">
              <h1>RESULT</h1>
                  <div class="row justify-content-md-center">
-                     <img class="lg-image" width="pixels" src="../../image/results/%20result_${n-1}.jpg" alt="result image step ${n-1}" title="result image step ${n-1}">
+                     <img class="lg-image" width="pixels" src="${arrResult[n-2]}" alt="result" title="result">
                  </div>
              </div>
         </div>
@@ -236,11 +233,9 @@ function buildOutputStep(){
     document.getElementById("showAnswers").innerHTML = html;
 }
 
-function renderAnswerHTML(){
-    let n = base.length;
-    buildCategories(n);
-    sleep(n*1000)
-    buildOutputStep();
+function renderAnswerHTML(content){
+    buildCategories(base.length);
+    buildOutputStep(content);
 }
 
 function findById(id, arr) {

@@ -1,6 +1,14 @@
 import cv2
 import numpy as np
 import os
+import base64
+from io import BytesIO
+from PIL import Image
+
+def encodeBase64(img):
+    _, buffer = cv2.imencode('.jpg', img)
+    new_image_string = "data:image/jpg;base64," + base64.b64encode(buffer).decode("utf-8")
+    return new_image_string
 
 class SIFT:
     def __init__(self, directory_output):
@@ -12,30 +20,20 @@ class SIFT:
         self.MIN_MATCH_COUNT = 10
         self.directory_output = directory_output
 
-    def convert_link_file_to_true_directory(self, name):
-        return os.path.join(self.directory_output, name)
-
     def keyPoints(self, img):
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         kp, des = self.sift.detectAndCompute(img_gray, None)
         return kp, des
 
-    def match(self, src_img, test_img, idImage):
-        # set name
-        name_matches = 'matcher\match_image_' + str(idImage) + '.jpg'
-        name_matches = self.convert_link_file_to_true_directory(name_matches)
-        name_RANSAC = 'ransac\match_RANSAC_image_' + str(idImage) + '.jpg'
-        name_RANSAC = self.convert_link_file_to_true_directory(name_RANSAC)
-        name_kp_1 = 'keypoints_image_after_compare\keypoints_image_src_compare_image_' + str(idImage) + '.jpg'
-        name_kp_1 = self.convert_link_file_to_true_directory(name_kp_1)
-        name_kp_2 = 'keypoints\keypoints_image_' + str(idImage) + '.jpg'
-        name_kp_2 = self.convert_link_file_to_true_directory(name_kp_2)
-
+    def match(self, src_img, test_img, idImage, arrKeyPoints, arrKeyPointsAfterCompare, arrMatcher, arrRansac):
         # Get keypoints in image
         kp_1, des_1 = self.keyPoints(src_img)
         kp_2, des_2 = self.keyPoints(test_img)
-        cv2.imwrite(name_kp_1, cv2.drawKeypoints(src_img, kp_1, None))
-        cv2.imwrite(name_kp_2, cv2.drawKeypoints(test_img, kp_2, None))
+        dKP1 = cv2.drawKeypoints(src_img, kp_1, None)
+        dKP2 = cv2.drawKeypoints(test_img, kp_2, None)
+
+        arrKeyPointsAfterCompare.append(encodeBase64(dKP1))
+        arrKeyPoints.append(encodeBase64(dKP2))
 
         # Matching keypoints
         matches = self.PLANN.knnMatch(des_1, des_2, k=2)
@@ -55,7 +53,7 @@ class SIFT:
             flags=0
         )
         img_draw_matches = cv2.drawMatchesKnn(src_img, kp_1, test_img, kp_2, matches, None, **draw_params)
-        cv2.imwrite(name_matches, img_draw_matches)
+        arrMatcher.append(encodeBase64(img_draw_matches))
 
         if len(good) > self.MIN_MATCH_COUNT:
             src_pts = np.float32([kp_1[m.queryIdx].pt for m in good])
@@ -70,8 +68,8 @@ class SIFT:
                 flags=2,
             )
             img_match_RANSAC = cv2.drawMatches(src_img, kp_1, test_img, kp_2, good, None, **draw_params)
-            cv2.imwrite(name_RANSAC, img_match_RANSAC)
-            return M
+            arrRansac.append(encodeBase64(img_match_RANSAC))
+            return M, arrKeyPoints, arrKeyPointsAfterCompare, arrMatcher, arrRansac
         else:
             matches_mask = None
-        return None
+        return None, arrKeyPoints, arrKeyPointsAfterCompare, arrMatcher, arrRansac

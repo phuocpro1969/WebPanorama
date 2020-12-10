@@ -1,10 +1,11 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 import imutils
-from .matcher import *
 import base64
+from io import BytesIO
+from PIL import Image
+from .matcher import *
 
 def blend_linear(image_1, image_2):
     img_1_mask = ((image_1[:, :, 0] | image_1[:, :, 1] | image_1[:, :, 2]) > 0)
@@ -22,7 +23,7 @@ def blend_linear(image_1, image_2):
     out_mask = np.zeros(img_2_mask.shape[:2])
     proj_val = (r - out_1_center[0]) * vec[0] + (c - out_1_center[1]) * vec[1]
     out_mask[r, c] = (proj_val - (min(proj_val) + 1e-3)) / \
-                      ((max(proj_val) - 1e-3) - (min(proj_val) + 1e-3))
+                     ((max(proj_val) - 1e-3) - (min(proj_val) + 1e-3))
     # blending
     mask_1 = img_1_mask & (out_mask == 0)
     mask_2 = out_mask
@@ -43,6 +44,10 @@ def decodeBase64(data):
     img = cv2.resize(img, (500, 500))
     return img
 
+def encodeBase64(img):
+    _, buffer = cv2.imencode('.jpg', img)
+    new_image_string = "data:image/jpg;base64," + base64.b64encode(buffer).decode("utf-8")
+    return new_image_string
 
 def crop(result):
     gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
@@ -69,8 +74,12 @@ class Stitch:
         self.directory_output = directory_output
         self.images = self.load_image()
         self.matcher = SIFT(directory_output)
-        self.result = None
         self.idImage = 1
+        self.arrKeyPoints = []
+        self.arrKeyPointsAfterCompare = []
+        self.arrRansac = []
+        self.arrMatcher = []
+        self.arrResult = []
 
     def load_image(self):
         imgs = []
@@ -82,7 +91,13 @@ class Stitch:
     def shift(self):
         image = self.images[0]
         for image_next in self.images[1:]:
-            homography = self.matcher.match(image, image_next, self.idImage)
+            homography, self.arrKeyPoints, \
+            self.arrKeyPointsAfterCompare, self.arrMatcher, self.arrRansac = \
+                self.matcher.match(
+                    image, image_next, self.idImage, self.arrKeyPoints,
+                    self.arrKeyPointsAfterCompare, self.arrMatcher,
+                    self.arrRansac
+                )
             # invert homography
             ih = np.linalg.inv(homography)
 
@@ -136,21 +151,11 @@ class Stitch:
                 np.uint8
             )
             warp_img_1[
-                offset[1]:image_next.shape[0] + offset[1],
-                offset[0]:image_next.shape[1] + offset[0]
+            offset[1]:image_next.shape[0] + offset[1],
+            offset[0]:image_next.shape[1] + offset[0]
             ] = image_next
             warp_img_2 = cv2.warpPerspective(image, m_off, dSize)
             tmp = blend_linear(warp_img_1, warp_img_2)
             image = crop(tmp)
-            name_image = self.matcher.convert_link_file_to_true_directory("results\ result_" + str(self.idImage) + '.jpg')
-            cv2.imwrite(name_image, image)
+            self.arrResult.append(encodeBase64(image))
             self.idImage += 1
-        self.result = image
-
-    def finish(self):
-        result_path = self.matcher.convert_link_file_to_true_directory('results\ result_' + str(self.idImage) + '.jpg')
-        cv2.imwrite(result_path, self.result)
-
-    def run_stitch(self):
-        self.shift()
-        self.finish()
