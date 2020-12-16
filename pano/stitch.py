@@ -34,8 +34,6 @@ def blend_linear(image_1, image_2):
 
     return np.uint8(out)
 
-
-
 class Stitch:
     def __init__(self, directory_input, directory_output):
         self.directory_input = directory_input
